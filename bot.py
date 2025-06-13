@@ -4,15 +4,17 @@ import json
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message, WebAppInfo, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import CommandStart
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types.web_app_info import WebAppInfo
+from aiogram.client.default import DefaultBotProperties
 
 # --- НАСТРОЙКИ ---
-# Вставьте сюда токен вашего бота
-BOT_TOKEN = "YOUR_BOT_TOKEN"
+BOT_TOKEN = '7564273394:AAG9jDrhat3tY4X5E0NhJjkb-PQmKCIfI6Q'  # Your bot token
 
-# URL вашего веб-приложения (важный шаг, см. инструкцию ниже)
-WEB_APP_URL = "YOUR_WEB_APP_URL" 
+# !!! ВАЖНО !!!
+# You mentioned you are using Vercel. Put your Vercel app URL here.
+# It will look something like: https://your-project-name.vercel.app
+WEB_APP_URL = "https://curly-octo-system-five.vercel.app/" 
+
+SCORES_FILE = 'user_scores.json' # File to store user scores
 
 # --- КОНЕЦ НАСТРОЕК ---
 
@@ -21,11 +23,32 @@ WEB_APP_URL = "YOUR_WEB_APP_URL"
 logging.basicConfig(level=logging.INFO)
 
 # Инициализация бота и диспетчера
-bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
 dp = Dispatcher()
+bot = Bot(
+    token=BOT_TOKEN,
+    default=DefaultBotProperties(parse_mode="HTML")
+)
 
-# Простое "хранилище" для очков пользователей (в реальном приложении нужна БД)
-user_scores = {}
+# --- ФУНКЦИИ ДЛЯ СОХРАНЕНИЯ ДАННЫХ ---
+
+def load_scores():
+    """Загружает очки пользователей из файла JSON."""
+    try:
+        with open(SCORES_FILE, 'r') as f:
+            # Преобразуем ключи из строк обратно в int
+            return {int(k): v for k, v in json.load(f).items()}
+    except (FileNotFoundError, json.JSONDecodeError):
+        # Если файл не найден или пуст/поврежден, возвращаем пустой словарь
+        return {}
+
+def save_scores(scores):
+    """Сохраняет очки пользователей в файл JSON."""
+    with open(SCORES_FILE, 'w') as f:
+        json.dump(scores, f, indent=4)
+
+# Загружаем очки при запуске бота
+user_scores = load_scores()
+
 
 # Обработчик команды /start
 @dp.message(CommandStart())
@@ -40,8 +63,9 @@ async def command_start(message: Message):
         keyboard=[[web_app_button]],
         resize_keyboard=True
     )
-    
+
     user_id = message.from_user.id
+    # Получаем счет пользователя из загруженных данных
     current_score = user_scores.get(user_id, 0)
 
     await message.answer(
@@ -60,27 +84,34 @@ async def web_app_data_handler(message: Message):
         # Данные приходят в виде строки JSON, парсим их
         data = json.loads(message.web_app_data.data)
         score = data.get('score')
-        
+
         if score is not None:
             user_id = message.from_user.id
             user_scores[user_id] = score
             
+            # *** ГЛАВНОЕ ИЗМЕНЕНИЕ: Сохраняем данные в файл ***
+            save_scores(user_scores)
+
             await message.answer(
                 f"Отличная работа! ✨\nТвой счет сохранен: <b>{score} AUR</b>"
             )
         else:
             await message.answer("Не удалось получить данные о счете.")
-            
+
     except json.JSONDecodeError:
         await message.answer("Ошибка: неверный формат данных.")
     except Exception as e:
-        await message.answer(f"Произошла ошибка: {e}")
+        logging.error(f"Error in web_app_data_handler: {e}")
+        await message.answer(f"Произошла непредвиденная ошибка.")
 
 
 # Главная функция для запуска бота
 async def main():
-    print("Бот запущен...")
+    # Удаляем вебхук, если он был установлен ранее, чтобы избежать конфликтов
+    await bot.delete_webhook(drop_pending_updates=True)
+    # Запускаем polling (опрос)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
+    logging.info("Starting bot...")
     asyncio.run(main())
