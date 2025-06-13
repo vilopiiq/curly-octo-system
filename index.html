@@ -9,13 +9,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
         :root {
-            --bg-color-start: #141E30;
-            --bg-color-end: #243B55;
+            --bg-color: #000000;
             --text-color: #ffffff;
-            --glass-bg: rgba(20, 30, 48, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.15);
-            --accent-glow: rgba(127, 255, 212, 0.6);
-            --energy-color: #4ddbff;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --accent-glow: rgba(255, 255, 255, 0.7);
         }
 
         html, body {
@@ -26,7 +24,9 @@
         }
 
         body {
-            background: linear-gradient(135deg, var(--bg-color-start), var(--bg-color-end));
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 100% 100%, rgba(255,255,255,0.08), transparent 40%),
+                              radial-gradient(circle at 0% 0%, rgba(255,255,255,0.05), transparent 30%);
             color: var(--text-color);
             font-family: 'Inter', sans-serif;
             display: flex;
@@ -37,149 +37,134 @@
             -webkit-user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
-
-        /* --- PRELOADER --- */
-        #preloader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color-start); z-index: 300; display: flex;
-            align-items: center; justify-content: center; transition: opacity 0.5s ease;
-        }
-        .spinner {
-            width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3);
-            border-top-color: var(--text-color); border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-
-        /* --- DESKTOP BLOCKER (no change) --- */
+        
+        /* --- DESKTOP BLOCKER (Themed) --- */
         #desktop-blocker { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 200; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         .blocker-icon { font-size: 64px; margin-bottom: 20px; }
-
-
+        
         /* --- MAIN CONTAINER --- */
         .container {
             width: 100%; height: 100%; display: flex; flex-direction: column;
-            padding: 15px; box-sizing: border-box; opacity: 0;
-            transition: opacity 0.5s ease;
+            padding: 15px; box-sizing: border-box;
         }
 
-        header {
-            padding: 15px; background: var(--glass-bg); border-radius: 20px;
-            border: 1px solid var(--glass-border); backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px); text-align: center;
+        /* --- GLASS PANELS (Header, Nav, etc.) --- */
+        header, nav, .modal-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
         }
+
+        header { padding: 15px; text-align: center; }
         #score-display {
-            font-size: 10vw; max-font-size: 48px; font-weight: 900;
+            font-size: 11vw; max-font-size: 52px; font-weight: 900;
             display: flex; align-items: center; justify-content: center;
-            gap: 10px; text-shadow: 0 0 15px var(--accent-glow);
+            gap: 12px; text-shadow: 0 0 15px var(--accent-glow);
         }
         #autoclick-info { font-size: 3.5vw; max-font-size: 14px; opacity: 0.7; margin-top: 5px; }
-
 
         /* --- COIN & PARTICLES --- */
         .coin-wrapper {
             flex-grow: 1; display: flex; align-items: center; justify-content: center;
-            position: relative; perspective: 1000px;
+            position: relative;
         }
         .aura-coin {
-            width: 65vw; height: 65vw; max-width: 280px; max-height: 280px;
-            cursor: pointer; position: relative; display: flex;
-            align-items: center; justify-content: center;
+            width: 70vw; height: 70vw; max-width: 300px; max-height: 300px;
+            cursor: pointer; position: relative;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #ddd, #555);
-            border: 3px solid rgba(255,255,255,0.5);
-            box-shadow: 0 0 25px rgba(0,0,0,0.5), inset 0 0 15px rgba(255,255,255,0.3);
-            transition: transform 0.1s ease;
-            transform-style: preserve-3d;
+            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.2), transparent 40%),
+                        radial-gradient(circle at 50% 50%, rgba(0,0,0,0.5), #000 80%);
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1), 0 0 30px rgba(255,255,255,0.1);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            display: flex; align-items: center; justify-content: center;
         }
+        /* The orbiting glint effect */
+        .aura-coin::before {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; border-radius: 50%;
+            background: conic-gradient(from 0deg at 50% 50%, transparent 0%, transparent 80%, rgba(255,255,255,0.7) 95%, transparent 100%);
+            animation: rotateGlow 5s linear infinite;
+            filter: blur(5px);
+        }
+        @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
         .aura-coin-logo {
-            font-size: 25vw; max-font-size: 100px; color: #fff;
-            font-weight: 900; text-shadow: 0 0 20px #fff;
-            transform: translateZ(20px);
+            font-size: 28vw; max-font-size: 110px;
+            color: #fff; font-weight: 900;
+            text-shadow: 0 0 25px #fff;
         }
-        .aura-coin:active { transform: scale(0.95) rotateY(5deg); }
+        .aura-coin:active {
+            transform: scale(0.96);
+            box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.2), 0 0 15px rgba(255,255,255,0.05);
+        }
         .plus-one {
-            position: absolute; font-size: 28px; font-weight: 700; color: var(--text-color);
-            text-shadow: 0 0 5px var(--accent-glow); animation: floatUp 1.2s ease-out forwards;
+            position: absolute; font-size: 32px; font-weight: 700; color: var(--text-color);
+            text-shadow: 0 0 8px var(--accent-glow); animation: floatUp 1.2s ease-out forwards;
             pointer-events: none; z-index: 10;
         }
-        @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100px); } }
-        .particle {
-            position: absolute; width: 8px; height: 8px;
-            background: var(--text-color); border-radius: 50%;
-            pointer-events: none; z-index: 9;
-            box-shadow: 0 0 10px var(--text-color);
-            animation: burst 0.8s ease-out forwards;
-        }
-        @keyframes burst {
-            from { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            to { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; }
-        }
+        @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-120px); } }
 
         /* --- ENERGY BAR --- */
         .energy-bar-container {
             width: 100%; background: var(--glass-bg); border-radius: 12px;
             padding: 5px; box-sizing: border-box; margin-top: 15px;
-            border: 1px solid var(--glass-border);
+            border: 1px solid var(--glass-border); backdrop-filter: blur(10px);
         }
         .energy-bar-fill {
-            height: 20px; background: linear-gradient(90deg, #3a7bd5, var(--energy-color));
+            height: 20px; background: linear-gradient(90deg, #fff, #ccc);
             border-radius: 8px; width: 100%; transition: width 0.3s ease-in-out;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
-        .energy-bar-text {
-            font-size: 12px; font-weight: 700; margin-top: 5px; text-align: center;
+        .energy-bar-text { font-size: 12px; font-weight: 700; margin-top: 5px; text-align: center; text-shadow: 1px 1px 2px #000; }
+        
+        /* --- NAVIGATION --- */
+        nav { display: flex; justify-content: space-around; width: 100%; padding: 5px; margin-top: 15px; }
+        nav button {
+            background: none; border: none; color: var(--text-color); font-size: 14px;
+            font-family: 'Inter', sans-serif; font-weight: 700; padding: 12px 10px;
+            cursor: pointer; opacity: 0.8; transition: all 0.2s; flex-grow: 1;
         }
+        nav button:hover { opacity: 1; }
+        nav button:active { transform: scale(1.05); opacity: 1; }
 
-        /* --- NAVIGATION (no change) --- */
-        nav { display: flex; justify-content: space-around; width: 100%; padding: 5px; background: var(--glass-bg); border-radius: 20px; border: 1px solid var(--glass-border); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); margin-top: 15px; }
-        nav button { background: none; border: none; color: var(--text-color); font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 700; padding: 12px 10px; cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; flex-grow: 1; }
-        nav button:hover, nav button:focus { opacity: 1; }
-        nav button:active { transform: scale(1.05); }
-
-        /* --- MODAL WINDOWS (with animation) --- */
-        .modal {
-            display: flex; align-items: center; justify-content: center;
-            position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
-            opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
-        }
+        /* --- MODAL WINDOWS --- */
+        .modal { display: flex; align-items: center; justify-content: center; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
         .modal.visible { opacity: 1; visibility: visible; }
-        .modal-content {
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
-            padding: 20px; border-radius: 20px; width: 85%; position: relative;
-            transform: scale(0.95); transition: transform 0.3s;
-        }
+        .modal-content { padding: 20px; width: 85%; position: relative; transform: scale(0.95); transition: transform 0.3s; }
         .modal.visible .modal-content { transform: scale(1); }
         .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.2s; }
         .close-button:hover { color: #fff; }
 
-        /* --- SHOP & ACHIEVEMENTS (no change) --- */
+        /* --- SHOP & ACHIEVEMENTS --- */
         .shop-item, .achievement-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--glass-border); }
         .shop-item:last-child, .achievement-item:last-child { border-bottom: none; }
         .shop-item-info, .achievement-info { text-align: left; flex-grow:1; }
         .shop-item-info p, .achievement-info p { margin: 2px 0; opacity: 0.7; font-size: 14px; }
-        .buy-btn { background-color: #fff; color: #000; border: none; border-radius: 8px; padding: 8px 15px; font-weight: 700; cursor: pointer; transition: transform 0.2s, background-color 0.2s; }
-        .buy-btn:hover { transform: scale(1.05); }
-        .buy-btn:disabled { background-color: #555; color: #999; cursor: not-allowed; }
+        .buy-btn {
+            background-color: rgba(255, 255, 255, 0.9); color: #000; border: none; border-radius: 8px;
+            padding: 8px 15px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+        }
+        .buy-btn:hover { background-color: #fff; transform: scale(1.05); }
+        .buy-btn:disabled { background-color: rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.5); cursor: not-allowed; }
         .achievement-icon { font-size: 32px; margin-right: 15px; }
         .achievement-item { opacity: 0.4; transition: opacity 0.5s; }
         .achievement-item.unlocked { opacity: 1; }
-
     </style>
 </head>
 <body>
 
-    <div id="preloader"><div class="spinner"></div></div>
-
+    <!-- Desktop Blocker and HTML structure remain the same -->
     <div id="desktop-blocker">
         <div class="blocker-icon">📱</div>
         <h2>Только для мобильных</h2>
         <p>Пожалуйста, откройте это приложение в Telegram на вашем телефоне.</p>
     </div>
 
-    <div class="container" id="game-container">
+    <div class="container">
         <header>
             <div id="score-display">
                 <span>AUR</span><span id="score">0</span>
@@ -205,11 +190,12 @@
         </nav>
     </div>
 
-    <!-- Modals -->
     <div id="shopModal" class="modal"><div class="modal-content"><span class="close-button" id="closeShop">&times;</span><h2 style="margin-top:0;">🛒 Магазин улучшений</h2><div id="shop-items-container"></div></div></div>
     <div id="achievementsModal" class="modal"><div class="modal-content"><span class="close-button" id="closeAchievements">&times;</span><h2 style="margin-top:0;">🏆 Достижения</h2><div id="achievements-container"></div></div></div>
     
     <script>
+        // The JavaScript logic does not need to be changed for this visual redesign.
+        // It's copied here from your previous version for completeness.
         const tg = window.Telegram.WebApp;
 
         function checkDevice() {
@@ -221,9 +207,8 @@
             return true;
         }
 
-        // --- GAME STATE ---
         let score = 0, clickPower = 1, autoClickRate = 0;
-        let energy = 1000, maxEnergy = 1000, energyRegenRate = 5; // 5 energy per second
+        let energy = 1000, maxEnergy = 1000, energyRegenRate = 5;
 
         const shopItems = [
             { id: 'click_1', type: 'click', name: 'Кофейная аура ☕', cost: 50, value: 1, purchased: 0, description: 'Увеличивает силу клика на +1' },
@@ -241,7 +226,6 @@
             { id: 'ach_5', name: 'Автопилот ✈️', description: 'Включить авто-клик', unlocked: false, condition: () => autoClickRate > 0 },
         ];
         
-        // --- DOM ELEMENTS ---
         const scoreElement = document.getElementById('score');
         const autoclickInfoElement = document.getElementById('autoclick-info');
         const coin = document.getElementById('aura-coin');
@@ -262,28 +246,6 @@
             });
             checkAchievements();
         }
-        
-        function createParticles(x, y) {
-            const particleCount = 10;
-            const container = document.querySelector('.coin-wrapper');
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                container.appendChild(particle);
-
-                const angle = Math.random() * 2 * Math.PI;
-                const distance = Math.random() * 60 + 40;
-                const endX = `${Math.cos(angle) * distance}px`;
-                const endY = `${Math.sin(angle) * distance}px`;
-
-                particle.style.setProperty('--x', endX);
-                particle.style.setProperty('--y', endY);
-                particle.style.left = `${x}px`;
-                particle.style.top = `${y}px`;
-
-                setTimeout(() => particle.remove(), 800);
-            }
-        }
 
         function handleCoinClick(event) {
             if (energy < clickPower) {
@@ -293,20 +255,14 @@
             
             energy -= clickPower;
             score += clickPower;
-
             tg.HapticFeedback.impactOccurred('light');
-
-            const coinRect = coin.getBoundingClientRect();
-            const clickX = event.touches ? event.touches[0].clientX : event.clientX;
-            const clickY = event.touches ? event.touches[0].clientY : event.clientY;
-
-            createParticles(clickX - coinRect.left, clickY - coinRect.top);
-
+            
+            const touch = event.touches ? event.touches[0] : event;
             const plusOne = document.createElement('div');
             plusOne.classList.add('plus-one');
             plusOne.textContent = `+${clickPower}`;
-            plusOne.style.left = `${clickX - 15}px`;
-            plusOne.style.top = `${clickY - 40}px`;
+            plusOne.style.left = `${touch.clientX - 20}px`;
+            plusOne.style.top = `${touch.clientY - 45}px`;
             document.body.appendChild(plusOne);
             setTimeout(() => plusOne.remove(), 1200);
 
@@ -315,7 +271,6 @@
         
         function initGame() {
             tg.expand();
-
             const shopModal = document.getElementById('shopModal');
             const achievementsModal = document.getElementById('achievementsModal');
             document.getElementById('shop-btn').onclick = () => shopModal.classList.add('visible');
@@ -330,41 +285,23 @@
                 tg.close();
             });
 
-            // Auto-clicker
-            setInterval(() => {
-                score += autoClickRate;
-                updateUI();
-            }, 1000);
-            
-            // Energy regeneration
-            setInterval(() => {
-                energy = Math.min(maxEnergy, energy + energyRegenRate);
-                updateUI();
-            }, 1000);
+            setInterval(() => { score += autoClickRate; updateUI(); }, 1000);
+            setInterval(() => { energy = Math.min(maxEnergy, energy + energyRegenRate); updateUI(); }, 1000);
             
             renderShop();
             renderAchievements();
             updateUI();
         }
 
-        // --- PAGE LOAD ---
-        window.addEventListener('load', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             if (checkDevice()) {
                 initGame();
-                // Fade in game container after a short delay
-                setTimeout(() => {
-                    document.getElementById('preloader').style.opacity = '0';
-                    document.getElementById('game-container').style.opacity = '1';
-                    // Remove preloader from DOM after transition
-                    setTimeout(() => document.getElementById('preloader').style.display = 'none', 500);
-                }, 500);
             }
         });
         
-        // --- RENDER & LOGIC FUNCTIONS (Mostly unchanged) ---
         function renderShop() { const c = document.getElementById('shop-items-container'); c.innerHTML = ''; shopItems.forEach(i => { const d = document.createElement('div'); d.className = 'shop-item'; d.innerHTML = `<div class="shop-item-info"><strong>${i.name}</strong><p>${i.description}</p></div><button class="buy-btn" data-item-id="${i.id}">Купить (${i.cost})</button>`; c.appendChild(d);}); document.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', () => buyItem(b.dataset.itemId)));}
         function buyItem(id) { const i = shopItems.find(i => i.id === id); if(i && score >= i.cost) { score -= i.cost; i.purchased += 1; if(i.type === 'click') clickPower += i.value; else if(i.type === 'auto') autoClickRate += i.value; else if(i.type === 'energy') maxEnergy += i.value; i.cost = Math.floor(i.cost * 1.5); tg.HapticFeedback.impactOccurred('medium'); renderShop(); updateUI();}}
-        function renderAchievements() { const c = document.getElementById('achievements-container'); c.innerHTML = ''; const m = ['✨', '🪙', '🚀', '🛍️', '✈️']; achievements.forEach((a, i) => { const d = document.createElement('div'); d.className = `achievement-item ${a.unlocked ? 'unlocked' : ''}`; d.innerHTML = `<div class="achievement-icon">${m[i % m.length]}</div><div class="achievement-info"><strong>${a.name}</strong><p>${a.description}</p></div>`; c.appendChild(d);});}
+        function renderAchievements() { const c = document.getElementById('achievements-container'); c.innerHTML = ''; const m = ['✨', '🪙', '🚀', '🛍️', '✈️', '🔋']; achievements.forEach((a, i) => { const d = document.createElement('div'); d.className = `achievement-item ${a.unlocked ? 'unlocked' : ''}`; d.innerHTML = `<div class="achievement-icon">${m[i % m.length]}</div><div class="achievement-info"><strong>${a.name}</strong><p>${a.description}</p></div>`; c.appendChild(d);});}
         function checkAchievements() { let ch = false; achievements.forEach(a => { if(!a.unlocked && a.condition()) { a.unlocked = true; ch = true; tg.HapticFeedback.notificationOccurred('success');}}); if(ch) renderAchievements();}
 
     </script>
