@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- Ключевые теги для мобильной оптимизации -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AURA Clicker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -10,216 +9,177 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
 
         :root {
-            --bg-color: #050505;
+            --bg-color-start: #141E30;
+            --bg-color-end: #243B55;
             --text-color: #ffffff;
-            --glass-bg: rgba(30, 30, 30, 0.5);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --accent-glow: rgba(255, 255, 255, 0.7);
+            --glass-bg: rgba(20, 30, 48, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --accent-glow: rgba(127, 255, 212, 0.6);
+            --energy-color: #4ddbff;
         }
 
-        html {
+        html, body {
             height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
 
         body {
-            background-color: var(--bg-color);
+            background: linear-gradient(135deg, var(--bg-color-start), var(--bg-color-end));
             color: var(--text-color);
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 15px; /* Уменьшаем отступы для мобильных */
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100vh;
-            box-sizing: border-box; /* Важно для 100vh */
-            overflow: hidden;
-            -webkit-user-select: none;
-            -ms-user-select: none;
+            box-sizing: border-box;
             user-select: none;
-            -webkit-tap-highlight-color: transparent; /* Убирает синюю подсветку при клике */
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- БЛОКИРОВЩИК ДЛЯ ДЕСКТОПА --- */
-        #desktop-blocker {
-            display: none; /* Изначально скрыт */
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 200;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 20px;
+        /* --- PRELOADER --- */
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color-start); z-index: 300; display: flex;
+            align-items: center; justify-content: center; transition: opacity 0.5s ease;
         }
-
-        .blocker-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+        .spinner {
+            width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: var(--text-color); border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* --- Основной контейнер игры --- */
+
+        /* --- DESKTOP BLOCKER (no change) --- */
+        #desktop-blocker { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 200; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+        .blocker-icon { font-size: 64px; margin-bottom: 20px; }
+
+
+        /* --- MAIN CONTAINER --- */
         .container {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1; /* Занимает все доступное пространство */
+            width: 100%; height: 100%; display: flex; flex-direction: column;
+            padding: 15px; box-sizing: border-box; opacity: 0;
+            transition: opacity 0.5s ease;
         }
-        
+
         header {
-            padding: 15px;
-            background: var(--glass-bg);
-            border-radius: 20px;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            text-align: center;
+            padding: 15px; background: var(--glass-bg); border-radius: 20px;
+            border: 1px solid var(--glass-border); backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px); text-align: center;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
         }
-
         #score-display {
-            font-size: 10vw; /* Адаптивный размер шрифта */
-            max-font-size: 48px;
-            font-weight: 900;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            text-shadow: 0 0 10px var(--accent-glow);
+            font-size: 10vw; max-font-size: 48px; font-weight: 900;
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; text-shadow: 0 0 15px var(--accent-glow);
         }
-        
-        #autoclick-info {
-            font-size: 3.5vw;
-            max-font-size: 14px;
-            opacity: 0.7;
-            margin-top: 5px;
-        }
+        #autoclick-info { font-size: 3.5vw; max-font-size: 14px; opacity: 0.7; margin-top: 5px; }
 
-        /* --- Монета --- */
+
+        /* --- COIN & PARTICLES --- */
         .coin-wrapper {
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
+            flex-grow: 1; display: flex; align-items: center; justify-content: center;
+            position: relative; perspective: 1000px;
         }
-        
         .aura-coin {
-            width: 65vw; /* Размер зависит от ширины экрана */
-            height: 65vw;
-            max-width: 250px;
-            max-height: 250px;
-            background-color: #000;
+            width: 65vw; height: 65vw; max-width: 280px; max-height: 280px;
+            cursor: pointer; position: relative; display: flex;
+            align-items: center; justify-content: center;
             border-radius: 50%;
-            cursor: pointer;
-            position: relative;
-            border: 3px solid #fff;
+            background: radial-gradient(circle at 30% 30%, #ddd, #555);
+            border: 3px solid rgba(255,255,255,0.5);
+            box-shadow: 0 0 25px rgba(0,0,0,0.5), inset 0 0 15px rgba(255,255,255,0.3);
             transition: transform 0.1s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2);
+            transform-style: preserve-3d;
         }
-        
-        .aura-coin::before {
-            content: '';
-            position: absolute;
-            top: -5px; left: -5px;
-            width: calc(100% + 10px);
-            height: calc(100% + 10px);
-            border-radius: 50%;
-            z-index: -1;
-            background: conic-gradient(#fff 0deg, #fff 20deg, transparent 50deg);
-            animation: rotateGlow 4s linear infinite;
-            filter: blur(15px);
-        }
-
-        @keyframes rotateGlow {
-            from { transform: rotate(0deg); } to { transform: rotate(360deg); }
-        }
-        
         .aura-coin-logo {
-            font-size: 25vw; /* Адаптивный логотип */
-            max-font-size: 90px;
-            color: #fff;
-            font-weight: 900;
-            text-shadow: 0 0 15px #fff;
+            font-size: 25vw; max-font-size: 100px; color: #fff;
+            font-weight: 900; text-shadow: 0 0 20px #fff;
+            transform: translateZ(20px);
         }
-
-        .aura-coin:active {
-            transform: scale(0.95);
-        }
-        
+        .aura-coin:active { transform: scale(0.95) rotateY(5deg); }
         .plus-one {
             position: absolute; font-size: 28px; font-weight: 700; color: var(--text-color);
-            text-shadow: 0 0 5px var(--accent-glow); animation: floatUp 1.2s ease-out forwards; pointer-events: none;
+            text-shadow: 0 0 5px var(--accent-glow); animation: floatUp 1.2s ease-out forwards;
+            pointer-events: none; z-index: 10;
+        }
+        @keyframes floatUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100px); } }
+        .particle {
+            position: absolute; width: 8px; height: 8px;
+            background: var(--text-color); border-radius: 50%;
+            pointer-events: none; z-index: 9;
+            box-shadow: 0 0 10px var(--text-color);
+            animation: burst 0.8s ease-out forwards;
+        }
+        @keyframes burst {
+            from { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            to { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; }
         }
 
-        @keyframes floatUp {
-            from { opacity: 1; transform: translateY(0); }
-            to { opacity: 0; transform: translateY(-100px); }
+        /* --- ENERGY BAR --- */
+        .energy-bar-container {
+            width: 100%; background: var(--glass-bg); border-radius: 12px;
+            padding: 5px; box-sizing: border-box; margin-top: 15px;
+            border: 1px solid var(--glass-border);
         }
-        
-        /* --- Навигация --- */
-        nav {
-            display: flex; justify-content: space-around; width: 100%; padding: 5px;
-            background: var(--glass-bg); border-radius: 20px; border: 1px solid var(--glass-border);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); margin-top: 15px;
+        .energy-bar-fill {
+            height: 20px; background: linear-gradient(90deg, #3a7bd5, var(--energy-color));
+            border-radius: 8px; width: 100%; transition: width 0.3s ease-in-out;
+        }
+        .energy-bar-text {
+            font-size: 12px; font-weight: 700; margin-top: 5px; text-align: center;
         }
 
-        nav button {
-            background: none; border: none; color: var(--text-color); font-size: 14px;
-            font-family: 'Inter', sans-serif; font-weight: 700; padding: 12px 10px;
-            cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.2s;
-            flex-grow: 1; /* Растягиваем кнопки */
-        }
-        nav button:active { opacity: 1; transform: scale(1.05); }
-        
-        /* --- Модальные окна --- */
+        /* --- NAVIGATION (no change) --- */
+        nav { display: flex; justify-content: space-around; width: 100%; padding: 5px; background: var(--glass-bg); border-radius: 20px; border: 1px solid var(--glass-border); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); margin-top: 15px; }
+        nav button { background: none; border: none; color: var(--text-color); font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 700; padding: 12px 10px; cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.2s; flex-grow: 1; }
+        nav button:hover, nav button:focus { opacity: 1; }
+        nav button:active { transform: scale(1.05); }
+
+        /* --- MODAL WINDOWS (with animation) --- */
         .modal {
-            display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%;
-            overflow: auto; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+            opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
         }
+        .modal.visible { opacity: 1; visibility: visible; }
         .modal-content {
-            background: var(--glass-bg); border: 1px solid var(--glass-border); margin: 25% auto;
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
             padding: 20px; border-radius: 20px; width: 85%; position: relative;
+            transform: scale(0.95); transition: transform 0.3s;
         }
-        .close-button {
-            color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer;
-        }
+        .modal.visible .modal-content { transform: scale(1); }
+        .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.2s; }
         .close-button:hover { color: #fff; }
-        
-        /* --- Стили для магазина и ачивок (без изменений) --- */
-        .shop-item, .achievement-item {
-             display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--glass-border);
-        }
+
+        /* --- SHOP & ACHIEVEMENTS (no change) --- */
+        .shop-item, .achievement-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--glass-border); }
         .shop-item:last-child, .achievement-item:last-child { border-bottom: none; }
         .shop-item-info, .achievement-info { text-align: left; flex-grow:1; }
         .shop-item-info p, .achievement-info p { margin: 2px 0; opacity: 0.7; font-size: 14px; }
-        .buy-btn {
-            background-color: #fff; color: #000; border: none; border-radius: 8px;
-            padding: 8px 15px; font-weight: 700; cursor: pointer; transition: transform 0.2s;
-        }
+        .buy-btn { background-color: #fff; color: #000; border: none; border-radius: 8px; padding: 8px 15px; font-weight: 700; cursor: pointer; transition: transform 0.2s, background-color 0.2s; }
         .buy-btn:hover { transform: scale(1.05); }
         .buy-btn:disabled { background-color: #555; color: #999; cursor: not-allowed; }
         .achievement-icon { font-size: 32px; margin-right: 15px; }
         .achievement-item { opacity: 0.4; transition: opacity 0.5s; }
         .achievement-item.unlocked { opacity: 1; }
-        
+
     </style>
 </head>
 <body>
 
-    <!-- ЭКРАН-БЛОКИРОВЩИК -->
+    <div id="preloader"><div class="spinner"></div></div>
+
     <div id="desktop-blocker">
         <div class="blocker-icon">📱</div>
         <h2>Только для мобильных</h2>
-        <p>Пожалуйста, откройте это приложение в Telegram на вашем телефоне, чтобы начать игру.</p>
+        <p>Пожалуйста, откройте это приложение в Telegram на вашем телефоне.</p>
     </div>
 
-    <!-- Основной контейнер игры -->
-    <div class="container">
+    <div class="container" id="game-container">
         <header>
             <div id="score-display">
                 <span>AUR</span><span id="score">0</span>
@@ -232,6 +192,11 @@
                 <div class="aura-coin-logo">A</div>
             </div>
         </div>
+        
+        <div class="energy-bar-container">
+            <div class="energy-bar-fill" id="energy-bar-fill"></div>
+            <div class="energy-bar-text" id="energy-bar-text">⚡ 1000 / 1000</div>
+        </div>
 
         <nav>
             <button id="shop-btn">🛒 Магазин</button>
@@ -240,35 +205,33 @@
         </nav>
     </div>
 
-    <!-- Модальные окна (HTML без изменений) -->
+    <!-- Modals -->
     <div id="shopModal" class="modal"><div class="modal-content"><span class="close-button" id="closeShop">&times;</span><h2 style="margin-top:0;">🛒 Магазин улучшений</h2><div id="shop-items-container"></div></div></div>
     <div id="achievementsModal" class="modal"><div class="modal-content"><span class="close-button" id="closeAchievements">&times;</span><h2 style="margin-top:0;">🏆 Достижения</h2><div id="achievements-container"></div></div></div>
     
     <script>
         const tg = window.Telegram.WebApp;
 
-        // --- Функция проверки устройства ---
         function checkDevice() {
-            // Простая, но надежная проверка по User Agent
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
             if (!isMobile) {
                 document.getElementById('desktop-blocker').style.display = 'flex';
-                document.querySelector('.container').style.display = 'none';
                 return false;
             }
             return true;
         }
 
-        // --- Логика игры (с небольшими мобильными улучшениями) ---
-        // Состояние игры, магазины, ачивки (JS без изменений, кроме одного места)
+        // --- GAME STATE ---
         let score = 0, clickPower = 1, autoClickRate = 0;
+        let energy = 1000, maxEnergy = 1000, energyRegenRate = 5; // 5 energy per second
+
         const shopItems = [
             { id: 'click_1', type: 'click', name: 'Кофейная аура ☕', cost: 50, value: 1, purchased: 0, description: 'Увеличивает силу клика на +1' },
             { id: 'click_2', type: 'click', name: 'Энергия мысли 💡', cost: 500, value: 5, purchased: 0, description: 'Увеличивает силу клика на +5' },
             { id: 'auto_1', type: 'auto', name: 'Фоновый резонанс 🎶', cost: 100, value: 1, purchased: 0, description: '+1 AUR в секунду' },
             { id: 'auto_2', type: 'auto', name: 'Квантовый компьютер 🤖', cost: 1000, value: 10, purchased: 0, description: '+10 AUR в секунду' },
             { id: 'auto_3', type: 'auto', name: 'Коллективный разум 🧠', cost: 10000, value: 100, purchased: 0, description: '+100 AUR в секунду' },
+            { id: 'energy_1', type: 'energy', name: 'Батарейка 🔋', cost: 250, value: 500, purchased: 0, description: '+500 к макс. энергии' },
         ];
         const achievements = [
             { id: 'ach_1', name: 'Первый шаг ✨', description: 'Сделать первый клик', unlocked: false, condition: () => score > 0 },
@@ -278,37 +241,72 @@
             { id: 'ach_5', name: 'Автопилот ✈️', description: 'Включить авто-клик', unlocked: false, condition: () => autoClickRate > 0 },
         ];
         
-        // --- Элементы DOM ---
+        // --- DOM ELEMENTS ---
         const scoreElement = document.getElementById('score');
         const autoclickInfoElement = document.getElementById('autoclick-info');
         const coin = document.getElementById('aura-coin');
+        const energyBarFill = document.getElementById('energy-bar-fill');
+        const energyBarText = document.getElementById('energy-bar-text');
 
         function updateUI() {
             scoreElement.textContent = Math.floor(score);
             autoclickInfoElement.textContent = `🔥 ${autoClickRate}/сек | 🖱️+${clickPower}`;
-            const buyButtons = document.querySelectorAll('.buy-btn');
-            buyButtons.forEach(button => {
+            
+            const energyPercentage = (energy / maxEnergy) * 100;
+            energyBarFill.style.width = `${energyPercentage}%`;
+            energyBarText.textContent = `⚡ ${Math.floor(energy)} / ${maxEnergy}`;
+
+            document.querySelectorAll('.buy-btn').forEach(button => {
                 const item = shopItems.find(i => i.id === button.dataset.itemId);
                 if(item) button.disabled = score < item.cost;
             });
             checkAchievements();
         }
+        
+        function createParticles(x, y) {
+            const particleCount = 10;
+            const container = document.querySelector('.coin-wrapper');
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                container.appendChild(particle);
+
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = Math.random() * 60 + 40;
+                const endX = `${Math.cos(angle) * distance}px`;
+                const endY = `${Math.sin(angle) * distance}px`;
+
+                particle.style.setProperty('--x', endX);
+                particle.style.setProperty('--y', endY);
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+
+                setTimeout(() => particle.remove(), 800);
+            }
+        }
 
         function handleCoinClick(event) {
+            if (energy < clickPower) {
+                tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
+            
+            energy -= clickPower;
             score += clickPower;
 
-            // *** МОБИЛЬНОЕ УЛУЧШЕНИЕ: Тактильная отдача ***
             tg.HapticFeedback.impactOccurred('light');
+
+            const coinRect = coin.getBoundingClientRect();
+            const clickX = event.touches ? event.touches[0].clientX : event.clientX;
+            const clickY = event.touches ? event.touches[0].clientY : event.clientY;
+
+            createParticles(clickX - coinRect.left, clickY - coinRect.top);
 
             const plusOne = document.createElement('div');
             plusOne.classList.add('plus-one');
             plusOne.textContent = `+${clickPower}`;
-            
-            // На мобильных event.touches[0] надежнее
-            const touch = event.touches ? event.touches[0] : event;
-            plusOne.style.left = `${touch.clientX - 20}px`;
-            plusOne.style.top = `${touch.clientY - 40}px`;
-
+            plusOne.style.left = `${clickX - 15}px`;
+            plusOne.style.top = `${clickY - 40}px`;
             document.body.appendChild(plusOne);
             setTimeout(() => plusOne.remove(), 1200);
 
@@ -318,52 +316,55 @@
         function initGame() {
             tg.expand();
 
-            // Привязка событий к модальным окнам
             const shopModal = document.getElementById('shopModal');
             const achievementsModal = document.getElementById('achievementsModal');
-            document.getElementById('shop-btn').onclick = () => shopModal.style.display = 'block';
-            document.getElementById('achievements-btn').onclick = () => achievementsModal.style.display = 'block';
-            document.getElementById('closeShop').onclick = () => shopModal.style.display = 'none';
-            document.getElementById('closeAchievements').onclick = () => achievementsModal.style.display = 'none';
-            window.onclick = (event) => {
-                if (event.target == shopModal) shopModal.style.display = 'none';
-                if (event.target == achievementsModal) achievementsModal.style.display = 'none';
-            };
-
-            // Привязка событий к основным элементам
-            // Используем 'touchstart' для мгновенной реакции на мобильных
-            coin.addEventListener('touchstart', handleCoinClick); 
+            document.getElementById('shop-btn').onclick = () => shopModal.classList.add('visible');
+            document.getElementById('achievements-btn').onclick = () => achievementsModal.classList.add('visible');
+            document.getElementById('closeShop').onclick = () => shopModal.classList.remove('visible');
+            document.getElementById('closeAchievements').onclick = () => achievementsModal.classList.remove('visible');
+            
+            coin.addEventListener('touchstart', handleCoinClick, { passive: true });
             
             document.getElementById('close-btn').addEventListener('click', () => {
                 tg.sendData(JSON.stringify({ score: Math.floor(score) }));
                 tg.close();
             });
 
-            // Запуск авто-кликера
+            // Auto-clicker
             setInterval(() => {
                 score += autoClickRate;
                 updateUI();
             }, 1000);
             
-            // Первичная отрисовка интерфейса
+            // Energy regeneration
+            setInterval(() => {
+                energy = Math.min(maxEnergy, energy + energyRegenRate);
+                updateUI();
+            }, 1000);
+            
             renderShop();
             renderAchievements();
             updateUI();
         }
 
-        // --- ОСНОВНОЙ СКРИПТ ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. Проверяем устройство
+        // --- PAGE LOAD ---
+        window.addEventListener('load', () => {
             if (checkDevice()) {
-                // 2. Если мобильное, инициализируем игру
                 initGame();
+                // Fade in game container after a short delay
+                setTimeout(() => {
+                    document.getElementById('preloader').style.opacity = '0';
+                    document.getElementById('game-container').style.opacity = '1';
+                    // Remove preloader from DOM after transition
+                    setTimeout(() => document.getElementById('preloader').style.display = 'none', 500);
+                }, 500);
             }
         });
         
-        // Функции renderShop, buyItem, renderAchievements, checkAchievements (без изменений)
+        // --- RENDER & LOGIC FUNCTIONS (Mostly unchanged) ---
         function renderShop() { const c = document.getElementById('shop-items-container'); c.innerHTML = ''; shopItems.forEach(i => { const d = document.createElement('div'); d.className = 'shop-item'; d.innerHTML = `<div class="shop-item-info"><strong>${i.name}</strong><p>${i.description}</p></div><button class="buy-btn" data-item-id="${i.id}">Купить (${i.cost})</button>`; c.appendChild(d);}); document.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', () => buyItem(b.dataset.itemId)));}
-        function buyItem(id) { const i = shopItems.find(i => i.id === id); if(i && score >= i.cost) { score -= i.cost; i.purchased += 1; if(i.type === 'click') clickPower += i.value; else if(i.type === 'auto') autoClickRate += i.value; i.cost = Math.floor(i.cost * 1.5); renderShop(); updateUI();}}
-        function renderAchievements() { const c = document.getElementById('achievements-container'); c.innerHTML = ''; const m = ['✨', '🪙', '🚀', '🛍️', '✈️']; achievements.forEach((a, i) => { const d = document.createElement('div'); d.className = `achievement-item ${a.unlocked ? 'unlocked' : ''}`; d.innerHTML = `<div class="achievement-icon">${m[i]}</div><div class="achievement-info"><strong>${a.name}</strong><p>${a.description}</p></div>`; c.appendChild(d);});}
+        function buyItem(id) { const i = shopItems.find(i => i.id === id); if(i && score >= i.cost) { score -= i.cost; i.purchased += 1; if(i.type === 'click') clickPower += i.value; else if(i.type === 'auto') autoClickRate += i.value; else if(i.type === 'energy') maxEnergy += i.value; i.cost = Math.floor(i.cost * 1.5); tg.HapticFeedback.impactOccurred('medium'); renderShop(); updateUI();}}
+        function renderAchievements() { const c = document.getElementById('achievements-container'); c.innerHTML = ''; const m = ['✨', '🪙', '🚀', '🛍️', '✈️']; achievements.forEach((a, i) => { const d = document.createElement('div'); d.className = `achievement-item ${a.unlocked ? 'unlocked' : ''}`; d.innerHTML = `<div class="achievement-icon">${m[i % m.length]}</div><div class="achievement-info"><strong>${a.name}</strong><p>${a.description}</p></div>`; c.appendChild(d);});}
         function checkAchievements() { let ch = false; achievements.forEach(a => { if(!a.unlocked && a.condition()) { a.unlocked = true; ch = true; tg.HapticFeedback.notificationOccurred('success');}}); if(ch) renderAchievements();}
 
     </script>
